@@ -1,0 +1,43 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Gestionnaire de cave à vin"
+readme = "README.md"
+authors = [
+    { name = "Flavien BELLI", email = "flavien.belli@protonmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff==0.9.4",
+]
+
+# --- Configuration de l'outil UV ---
+[tool.uv]
+managed = true
+
+# --- Configuration de RUFF (Linting & Formatting) ---
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# E, F : Erreurs et Pyflakes
+# I : Isort (tri des imports)
+# N : Naming (conventions de nommage)
+# UP : Upgrade (syntaxe Python moderne)
+# S : Bandit (sécurité)
+# B : Bugbear (erreurs courantes)
+# ANN : Type annotations
+select = ["E", "F", "I", "N", "UP", "S", "B", "ANN201", "PT"]
+ignore = ["ANN101"]                                           # Ignore "missing type for self"
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]  # assert autorisé dans les tests pytest
