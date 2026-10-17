@@ -139,7 +139,8 @@ export function BottlesPage() {
             onChange={(event) => setSearch(event.target.value)}
             style={{ flex: "1 1 220px", maxWidth: isMobile ? undefined : 260 }}
           />
-          <Tooltip title="OU entre les étiquettes d'une même catégorie, ET entre les catégories">
+          {/* Pas d'infobulle sur mobile : sans survol, elle s'afficherait au toucher par-dessus le champ */}
+          <Tooltip title={isMobile ? undefined : "OU entre les étiquettes d'une même catégorie, ET entre les catégories"}>
             <div style={{ flex: "1 1 260px", maxWidth: isMobile ? undefined : 360 }}>
               <TagSelect
                 value={tagIds}

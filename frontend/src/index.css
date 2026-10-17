@@ -3,3 +3,8 @@
 body {
   margin: 0;
 }
+
+/* Liste des étiquettes : arrivé en bas (ou en haut) de la liste, le geste ne fait pas défiler la page derrière */
+.tag-select-popup .ant-select-dropdown-list-holder {
+  overscroll-behavior: contain;
+}
