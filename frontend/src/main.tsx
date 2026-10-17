@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router";
 
 import { ApiError } from "./api/client";
 import { App } from "./App";
+import "./index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {

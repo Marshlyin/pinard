@@ -25,14 +25,14 @@ export function ShelfDetailModal({ shelfId, onClose }: ShelfDetailModalProps) {
         <Spin />
       ) : (
         <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
-          <Space>
+          <Space wrap>
             <Typography.Text>
               {shelf.placements.length} / {shelf.capacity} bouteilles
             </Typography.Text>
             <Progress
               percent={Math.round((shelf.placements.length / shelf.capacity) * 100)}
               size="small"
-              style={{ width: 200 }}
+              style={{ width: 180 }}
             />
           </Space>
           <ShelfGrid shelf={shelf} />

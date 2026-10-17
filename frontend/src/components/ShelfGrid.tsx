@@ -1,6 +1,7 @@
 import { Tooltip, Typography, theme } from "antd";
 
 import type { ShelfDetail, ShelfPlacement } from "../api/types";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 interface ShelfGridProps {
   shelf: ShelfDetail;
@@ -18,6 +19,9 @@ function bottleLabel(placement: ShelfPlacement): string {
 /** Vue de l'étagère : une case par emplacement, rangée 1 en haut. */
 export function ShelfGrid({ shelf, highlightedBottleId, onFreeSlotClick }: ShelfGridProps) {
   const { token } = theme.useToken();
+  const isMobile = useIsMobile();
+  // 36 px sur mobile : jusqu'à 8 cases tiennent sur un téléphone sans défilement
+  const cellSize = isMobile ? 36 : 64;
   const placementsBySlot = new Map(shelf.placements.map((p) => [`${p.row}-${p.column}`, p]));
 
   const cells = [];
@@ -32,8 +36,8 @@ export function ShelfGrid({ shelf, highlightedBottleId, onFreeSlotClick }: Shelf
           key={`${row}-${column}`}
           onClick={clickable ? () => onFreeSlotClick(row, column) : undefined}
           style={{
-            minHeight: 56,
-            padding: 4,
+            minHeight: isMobile ? 44 : 56,
+            padding: isMobile ? 2 : 4,
             borderRadius: token.borderRadius,
             border: `1px ${placement ? "solid" : "dashed"} ${highlighted ? token.colorPrimary : token.colorBorder}`,
             background: highlighted
@@ -54,7 +58,7 @@ export function ShelfGrid({ shelf, highlightedBottleId, onFreeSlotClick }: Shelf
             {row}·{column}
           </Typography.Text>
           {placement && (
-            <Typography.Text ellipsis style={{ fontSize: 12, maxWidth: "100%" }}>
+            <Typography.Text ellipsis style={{ fontSize: isMobile ? 10 : 12, maxWidth: "100%" }}>
               {placement.bottle.cuvee}
             </Typography.Text>
           )}
@@ -78,8 +82,17 @@ export function ShelfGrid({ shelf, highlightedBottleId, onFreeSlotClick }: Shelf
   }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${shelf.columns}, minmax(64px, 1fr))`, gap: 6 }}>
-      {cells}
+    // Étagère plus large que l'écran (ex : 8 cases sur un téléphone) : seule la grille défile horizontalement
+    <div style={{ overflowX: "auto" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${shelf.columns}, minmax(${cellSize}px, 1fr))`,
+          gap: isMobile ? 4 : 6,
+        }}
+      >
+        {cells}
+      </div>
     </div>
   );
 }

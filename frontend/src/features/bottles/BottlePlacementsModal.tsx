@@ -1,13 +1,15 @@
 import { DeleteOutlined, DragOutlined } from "@ant-design/icons";
-import { Alert, Button, Divider, Empty, Modal, Popconfirm, Select, Space, Spin, Table, Tooltip, Typography } from "antd";
+import { Alert, Button, Divider, Empty, Modal, Select, Space, Spin, Table, Typography } from "antd";
 import type { TableProps } from "antd";
 import { useState } from "react";
 
 import { useAddPlacement, useBottle, useMovePlacement, useRemovePlacement } from "../../api/bottles";
 import { useShelf, useShelves } from "../../api/shelves";
 import type { BottleLocation } from "../../api/types";
+import { RowActions } from "../../components/RowActions";
 import { ShelfGrid } from "../../components/ShelfGrid";
 import { useFeedback } from "../../hooks/useFeedback";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 interface BottlePlacementsModalProps {
   bottleId?: string;
@@ -29,6 +31,7 @@ export function BottlePlacementsModal({ bottleId, onClose }: BottlePlacementsMod
   const movePlacement = useMovePlacement();
   const removePlacement = useRemovePlacement();
   const feedback = useFeedback();
+  const isMobile = useIsMobile();
 
   const close = () => {
     setShelfId(undefined);
@@ -66,39 +69,55 @@ export function BottlePlacementsModal({ bottleId, onClose }: BottlePlacementsMod
       { onSuccess: () => feedback.success("Bouteille retirée"), onError: feedback.error },
     );
 
-  const columns: TableProps<BottleLocation>["columns"] = [
-    { title: "Étagère", key: "shelf", render: (_, placement) => placement.shelf.name },
-    { title: "Rangée", dataIndex: "row" },
-    { title: "Case", dataIndex: "column" },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 110,
-      render: (_, placement) => (
-        <Space>
-          <Tooltip title="Déplacer">
-            <Button
-              icon={<DragOutlined />}
-              type={movingPlacement?.id === placement.id ? "primary" : "default"}
-              onClick={() => {
-                setMovingPlacement(placement);
-                setShelfId(shelfId ?? placement.shelf.id);
-              }}
-            />
-          </Tooltip>
-          <Popconfirm
-            title="Retirer cette bouteille ?"
-            description="Bouteille bue ou sortie de la cave."
-            okText="Retirer"
-            cancelText="Annuler"
-            onConfirm={() => remove(placement)}
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const actionsColumn: NonNullable<TableProps<BottleLocation>["columns"]>[number] = {
+    title: isMobile ? undefined : "Actions",
+    key: "actions",
+    width: isMobile ? 56 : 110,
+    render: (_, placement) => (
+      <RowActions
+        actions={[
+          {
+            key: "move",
+            label: "Déplacer",
+            icon: <DragOutlined />,
+            active: movingPlacement?.id === placement.id,
+            onClick: () => {
+              setMovingPlacement(placement);
+              setShelfId(shelfId ?? placement.shelf.id);
+            },
+          },
+          {
+            key: "remove",
+            label: "Retirer",
+            icon: <DeleteOutlined />,
+            danger: true,
+            onClick: () => remove(placement),
+            confirm: {
+              title: "Retirer cette bouteille ?",
+              description: "Bouteille bue ou sortie de la cave.",
+              okText: "Retirer",
+            },
+          },
+        ]}
+      />
+    ),
+  };
+
+  const columns: TableProps<BottleLocation>["columns"] = isMobile
+    ? [
+        {
+          title: "Emplacement",
+          key: "location",
+          render: (_, placement) => `${placement.shelf.name} · rangée ${placement.row}, case ${placement.column}`,
+        },
+        actionsColumn,
+      ]
+    : [
+        { title: "Étagère", key: "shelf", render: (_, placement) => placement.shelf.name },
+        { title: "Rangée", dataIndex: "row" },
+        { title: "Case", dataIndex: "column" },
+        actionsColumn,
+      ];
 
   return (
     <Modal
@@ -144,7 +163,7 @@ export function BottlePlacementsModal({ bottleId, onClose }: BottlePlacementsMod
               value={shelfId}
               onChange={setShelfId}
               options={shelves.map((s) => ({ label: `${s.name} (${s.rows} × ${s.columns})`, value: s.id }))}
-              style={{ minWidth: 280 }}
+              style={{ width: isMobile ? "100%" : 320 }}
             />
             {shelf && (
               <>

@@ -1,0 +1,5 @@
+/* Le navigateur ajoute 8 px de marge au body : liseré blanc autour de l'en-tête, et débordement horizontal sur mobile
+   quand antd fixe des éléments à la largeur de l'écran (ouverture d'une modale) */
+body {
+  margin: 0;
+}

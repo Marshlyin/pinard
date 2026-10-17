@@ -1,4 +1,5 @@
-import { ColorPicker, Form, Input, Select } from "antd";
+import { BgColorsOutlined } from "@ant-design/icons";
+import { Button, ColorPicker, Form, Input, Select, Space } from "antd";
 import type { ColorPickerProps } from "antd";
 
 import { useSaveTag, useTagCategories } from "../../api/tags";
@@ -67,15 +68,54 @@ export function TagFormModal({ open, tag, defaultCategoryId, onClose }: TagFormM
           options={categories.map((category) => ({ label: category.name, value: category.id }))}
         />
       </Form.Item>
-      <Form.Item
-        label="Couleur"
-        name="color"
-        rules={[{ required: true }]}
-        // ColorPicker renvoie un objet couleur : le formulaire stocke directement le code #rrggbb attendu par l'API
-        getValueFromEvent={(color) => color.toHexString()}
-      >
-        <ColorPicker disabledAlpha showText presets={COLOR_PRESETS} />
+      <Form.Item label="Couleur" required>
+        <Space>
+          <Form.Item
+            name="color"
+            noStyle
+            rules={[{ required: true }]}
+            // ColorPicker renvoie un objet couleur : le formulaire stocke directement le code #rrggbb attendu par l'API
+            getValueFromEvent={(color) => color.toHexString()}
+          >
+            <ColorPicker disabledAlpha showText presets={COLOR_PRESETS} />
+          </Form.Item>
+          <RandomColorButton />
+        </Space>
       </Form.Item>
     </FormModal>
   );
+}
+
+/** Remplit le champ « color » du formulaire englobant avec une couleur tirée au hasard. */
+function RandomColorButton() {
+  const form = Form.useFormInstance<TagInput>();
+  return (
+    <Button icon={<BgColorsOutlined />} onClick={() => form.setFieldValue("color", randomColor())}>
+      Aléatoire
+    </Button>
+  );
+}
+
+/**
+ * Couleur aléatoire agréable : teinte libre, mais saturation et luminosité modérées (ni terne, ni fluo, ni quasi noire
+ * ou blanche), pour qu'une étiquette reste lisible et se distingue des autres.
+ */
+function randomColor(): string {
+  const hue = Math.random() * 360;
+  const saturation = 0.45 + Math.random() * 0.35; // 45 – 80 %
+  const lightness = 0.35 + Math.random() * 0.25; // 35 – 60 %
+  return hslToHex(hue, saturation, lightness);
+}
+
+/** Conversion HSL → #rrggbb (teinte en degrés, saturation et luminosité entre 0 et 1). */
+function hslToHex(hue: number, saturation: number, lightness: number): string {
+  const amplitude = saturation * Math.min(lightness, 1 - lightness);
+  const channel = (n: number) => {
+    const k = (n + hue / 30) % 12;
+    const value = lightness - amplitude * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(value * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(0)}${channel(8)}${channel(4)}`;
 }

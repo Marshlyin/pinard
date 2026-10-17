@@ -1,17 +1,20 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Flex, Popconfirm, Space, Table, Tooltip } from "antd";
+import { Button, Flex, Table } from "antd";
 import type { TableProps } from "antd";
 import { useState } from "react";
 
 import { useDeleteTagCategory, useTagCategories } from "../../api/tags";
 import type { TagCategory } from "../../api/types";
+import { RowActions } from "../../components/RowActions";
 import { useFeedback } from "../../hooks/useFeedback";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import { TagCategoryFormModal } from "./TagCategoryFormModal";
 
 export function TagCategoriesTab() {
   const { data: categories = [], isLoading } = useTagCategories();
   const deleteCategory = useDeleteTagCategory();
   const feedback = useFeedback();
+  const isMobile = useIsMobile();
 
   const [form, setForm] = useState<{ open: boolean; category?: TagCategory }>({ open: false });
 
@@ -24,25 +27,32 @@ export function TagCategoriesTab() {
   const columns: TableProps<TagCategory>["columns"] = [
     { title: "Nom", dataIndex: "name", sorter: (a, b) => a.name.localeCompare(b.name) },
     {
-      title: "Actions",
+      title: isMobile ? undefined : "Actions",
       key: "actions",
-      width: 110,
+      width: isMobile ? 56 : 110,
       render: (_, category) => (
-        <Space>
-          <Tooltip title="Renommer">
-            <Button icon={<EditOutlined />} onClick={() => setForm({ open: true, category })} />
-          </Tooltip>
-          <Popconfirm
-            title={`Supprimer la catégorie « ${category.name} » ?`}
-            description="Uniquement possible si elle ne contient aucune étiquette."
-            okText="Supprimer"
-            cancelText="Annuler"
-            okButtonProps={{ danger: true }}
-            onConfirm={() => remove(category)}
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
+        <RowActions
+          actions={[
+            {
+              key: "edit",
+              label: "Renommer",
+              icon: <EditOutlined />,
+              onClick: () => setForm({ open: true, category }),
+            },
+            {
+              key: "delete",
+              label: "Supprimer",
+              icon: <DeleteOutlined />,
+              danger: true,
+              onClick: () => remove(category),
+              confirm: {
+                title: `Supprimer la catégorie « ${category.name} » ?`,
+                description: "Uniquement possible si elle ne contient aucune étiquette.",
+                okText: "Supprimer",
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -50,13 +60,14 @@ export function TagCategoriesTab() {
   return (
     <>
       <Flex justify="end" style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setForm({ open: true })}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setForm({ open: true })} block={isMobile}>
           Nouvelle catégorie
         </Button>
       </Flex>
 
       <Table<TagCategory>
         rowKey="id"
+        size={isMobile ? "small" : "middle"}
         columns={columns}
         dataSource={categories}
         loading={isLoading}

@@ -1,5 +1,5 @@
 import { Form, Modal } from "antd";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 
 interface FormModalProps<T> {
   title: string;
@@ -21,7 +21,7 @@ export function FormModal<T extends object>({
   onSubmit,
   children,
 }: FormModalProps<T>) {
-  const [form] = Form.useForm<T>();
+  const formId = useId();
 
   return (
     <Modal
@@ -30,14 +30,18 @@ export function FormModal<T extends object>({
       okText="Enregistrer"
       cancelText="Annuler"
       confirmLoading={confirmLoading}
-      onOk={() => form.submit()}
+      // Le bouton du pied de modale est hors du <form> : l'attribut HTML form="<id>" le rattache au formulaire
+      okButtonProps={{ htmlType: "submit", form: formId }}
       onCancel={onCancel}
       destroyOnHidden
     >
-      {/* preserve=false + destroyOnHidden : formulaire réinitialisé avec les bonnes valeurs à chaque ouverture */}
-      <Form form={form} layout="vertical" initialValues={initialValues} preserve={false} onFinish={onSubmit}>
+      {/*
+        Pas d'instance partagée (Form.useForm) : elle survivrait aux fermetures avec ses valeurs, qui l'emporteraient
+        sur les nouvelles initialValues (la fiche précédente s'afficherait). Ici chaque ouverture crée un formulaire
+        neuf (destroyOnHidden le détruit à la fermeture), initialisé avec les valeurs de la fiche ouverte.
+      */}
+      <Form<T> id={formId} layout="vertical" initialValues={initialValues} preserve={false} onFinish={onSubmit}>
         {children}
-        <button type="submit" hidden />
       </Form>
     </Modal>
   );
