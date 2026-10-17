@@ -1,0 +1,16 @@
+services:
+  pinard:
+    build: .
+    image: pinard:latest
+    container_name: pinard
+    ports:
+      # Port d'accès sur le serveur (http://<serveur>:2020), modifiable via PINARD_PORT
+      - "${PINARD_PORT:-2020}:8000"
+    volumes:
+      # Base SQLite persistante : conservée aux redémarrages, mises à jour et reconstructions de l'image
+      - pinard-data:/data
+    restart: unless-stopped
+
+volumes:
+  pinard-data:
+    name: pinard-data
