@@ -8,3 +8,9 @@ body {
 .tag-select-popup .ant-select-dropdown-list-holder {
   overscroll-behavior: contain;
 }
+
+/* Recherche sans résultat : antd ne cale plus la largeur de la liste sur le champ, elle se réduit à ~90 px et coupe
+   le bouton « Créer « … » » */
+.tag-select-popup {
+  min-width: min(280px, calc(100vw - 32px));
+}

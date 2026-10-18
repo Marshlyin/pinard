@@ -26,10 +26,14 @@ interface TagFormModalProps {
   tag?: Tag;
   /** Catégorie présélectionnée à la création (ex : filtre actif dans la liste). */
   defaultCategoryId?: string;
+  /** Nom pré-rempli à la création (ex : texte recherché dans un TagSelect). */
+  defaultName?: string;
+  /** Appelé avec l'étiquette enregistrée, avant la fermeture (ex : la cocher sur la bouteille en cours). */
+  onSaved?: (tag: Tag) => void;
   onClose: () => void;
 }
 
-export function TagFormModal({ open, tag, defaultCategoryId, onClose }: TagFormModalProps) {
+export function TagFormModal({ open, tag, defaultCategoryId, defaultName, onSaved, onClose }: TagFormModalProps) {
   const { data: categories = [] } = useTagCategories();
   const saveTag = useSaveTag();
   const feedback = useFeedback();
@@ -40,6 +44,7 @@ export function TagFormModal({ open, tag, defaultCategoryId, onClose }: TagFormM
       {
         onSuccess: (saved) => {
           feedback.success(`Étiquette « ${saved.name} » enregistrée`);
+          onSaved?.(saved);
           onClose();
         },
         onError: feedback.error,
@@ -53,7 +58,7 @@ export function TagFormModal({ open, tag, defaultCategoryId, onClose }: TagFormM
       initialValues={
         tag
           ? { name: tag.name, category_id: tag.category.id, color: tag.color }
-          : { category_id: defaultCategoryId, color: DEFAULT_COLOR }
+          : { name: defaultName, category_id: defaultCategoryId, color: DEFAULT_COLOR }
       }
       confirmLoading={saveTag.isPending}
       onCancel={onClose}
@@ -65,6 +70,7 @@ export function TagFormModal({ open, tag, defaultCategoryId, onClose }: TagFormM
       <Form.Item label="Catégorie" name="category_id" rules={[{ required: true }]}>
         <Select
           placeholder="Choisir une catégorie"
+          notFoundContent="Aucune catégorie : créez-en une dans la page Étiquettes"
           options={categories.map((category) => ({ label: category.name, value: category.id }))}
         />
       </Form.Item>

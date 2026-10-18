@@ -55,7 +55,7 @@ export function BottleFormModal({ open, bottle, onClose }: BottleFormModalProps)
         <InputNumber min={1800} max={2100} precision={0} placeholder="2020" style={{ width: 140 }} />
       </Form.Item>
       <Form.Item label="Étiquettes" name="tag_ids">
-        <TagSelect placeholder="Type, garde, goûts, odeurs…" />
+        <TagSelect allowCreate placeholder="Type, garde, goûts, odeurs…" />
       </Form.Item>
     </FormModal>
   );

@@ -54,10 +54,13 @@ export function useSaveTag() {
   return useMutation({
     mutationFn: ({ id, input }: { id?: string; input: TagInput }) =>
       id ? api.put<Tag>(`/tags/${id}`, input) : api.post<Tag>("/tags", input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tagsKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["bottles"] });
-    },
+    // Promesse renvoyée : React Query l'attend avant les callbacks de mutate(), la liste des étiquettes est donc
+    // déjà rechargée quand l'appelant utilise l'étiquette créée (ex : la cocher dans un TagSelect)
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: tagsKeys.all }),
+        queryClient.invalidateQueries({ queryKey: ["bottles"] }),
+      ]),
   });
 }
 
